@@ -9,6 +9,7 @@
   "author": "VanJackal",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-ec2": "^3.20.0"
+    "@aws-sdk/client-ec2": "^3.20.0",
+    "dotenv": "^10.0.0"
   }
 }
