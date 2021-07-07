@@ -1,0 +1,14 @@
+{
+  "name": "cheesebot",
+  "version": "1.0.0",
+  "description": "Server utility bot for the 3Cheese Server",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "VanJackal",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-ec2": "^3.20.0"
+  }
+}
