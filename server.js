@@ -1,6 +1,8 @@
-const {EC2Client, StopInstancesCommand, StartInstancesCommand} = require('@aws-sdk/client-ec2');
+const {EC2Client, StopInstancesCommand, StartInstancesCommand, DescribeInstanceStatusCommand} = require('@aws-sdk/client-ec2');
 const client = new EC2Client({ region: "us-east-2" });
 const mcPing = require('minecraft-ping');
+
+const TIME = 1800000;//1.8Mms = 1800s = 30min
 
 class Server{
     #serverTimeout;
@@ -12,7 +14,7 @@ class Server{
         this.#serverTimeout = null;
     }
 
-    stopServer = async function(){
+    stopServer = async () => {
         const command = new StopInstancesCommand({InstanceIds: [this.instanceID]});
         const response = await client.send(command);
         console.log(response)
@@ -24,34 +26,54 @@ class Server{
         console.log(response);
     }
 
-    getServerStatus = function(cb = this.processStatus){//if cb is given args (null,null) then the instance isnt up
-        if(this.getInstanceStatus){
+    getServerStatus = async function(cb = this.processStatus){//if cb is given args (null,null) then the instance isnt up
+        const instanceStatus = await this.getInstanceStatus();
+        if(instanceStatus){
             mcPing.ping_fe({host: this.serverURI, port: this.serverPort},cb);
         } else {
             cb(null,null);
         }
     }
 
-    processStatus = function(err,res){
+    processStatus = (err,res) => {
         if(!err && res){
             console.log(res);
+            let players = res.playersOnline ?? 0;
+            this.processTimeout(players);
         } else if (!res && err){
-            console.log("Error in Status Processing:")
+            console.log("Error in Status Processing(Minecraft Server likely offline):")
             console.log(err)
-        } else {
+            this.processTimeout(0);//treat it as if there are no players (so th e server will close if it has crashed)
+        } else {//Server and EC2 instance are offline
             this.endTimeout();
         }
     }
 
-    endTimeout = function(){
+    processTimeout = (players) => {
+        if (players > 0){
+            this.endTimeout();
+        } else if (players == 0 && ! this.#serverTimeout) {
+            this.#serverTimeout = setTimeout(this.stopServer,TIME);
+        }
+    }
+
+    endTimeout = () => {
         if(this.#serverTimeout){
             clearTimeout(this.#serverTimeout);
             this.#serverTimeout = null;
         }
     }
 
-    getInstanceStatus = function(){
-        return true;
+    getInstanceStatus = async function(){
+        const command = new DescribeInstanceStatusCommand({InstanceIds: [this.instanceID]});
+        const response = await client.send(command);
+        console.log(response);
+        var ret = false
+        if(response.InstanceStatuses && response.InstanceStatuses.length != 0){
+            ret = true;
+        }
+        console.log(ret);
+        return ret;
     }
 }
 
