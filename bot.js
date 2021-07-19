@@ -1,11 +1,11 @@
 require('dotenv').config();
 const Discord = require("discord.js");
 const client = new Discord.Client();
-const PREFIX = process.env.PREFIX;
 
 const {ServerManager} = require("./serverManager");
 const serverManager = new ServerManager("./servers.json");
 const config = require("./config.json");
+const PREFIX = config.prefix;
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -45,7 +45,7 @@ async function commandStartInstance(message,HRID){
         startMessage = await serverManager.startInstanceFromHRID(HRID);
         message.channel.send(startMessage);
     } else {
-        return "You do not have permission to do this"
+        message.channel.send("You do not have permission to do this");
     }
 }
 
