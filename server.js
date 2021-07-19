@@ -7,23 +7,39 @@ const TIME = 1800000;//1.8Mms = 1800s = 30min
 class Server{
     #serverTimeout;
 
-    constructor(instanceID,serverURI,serverPort){
+    constructor(instanceID,serverURI,serverPort,HRID){
         this.instanceID = instanceID;
         this.serverURI = serverURI;
         this.serverPort = serverPort;
+        this.HRID = HRID;
         this.#serverTimeout = null;
+
+        this.recentStatus = "Initializing";
     }
 
     stopServer = async () => {
+        let online = await this.getInstanceStatus();
+        if(!online){
+            return `${this.HRID} Already Offline`;
+        }
         const command = new StopInstancesCommand({InstanceIds: [this.instanceID]});
         const response = await client.send(command);
-        console.log(response)
+        this.endTimeout();
+        this.recentStatus = "Offline/Shutting down";
+        console.log(response);
+        return `${this.HRID} shutting down`;
     }
 
-    startServer = async function(){
+    startServer = async () => {
+        let online = await this.getInstanceStatus();
+        if(online){
+            return `${this.HRID} Already Online`;
+        }
         const command = new StartInstancesCommand({InstanceIds: [this.instanceID]});
         const response = await client.send(command);
+        this.recentStatus = "Online/Booting";
         console.log(response);
+        return `${this.HRID} Booting`;
     }
 
     getServerStatus = async function(cb = this.processStatus){//if cb is given args (null,null) then the instance isnt up
@@ -44,16 +60,20 @@ class Server{
             console.log("Error in Status Processing(Minecraft Server likely offline):")
             console.log(err)
             this.processTimeout(0);//treat it as if there are no players (so th e server will close if it has crashed)
+            this.recentStatus = "Offline/Booting";
         } else {//Server and EC2 instance are offline
             this.endTimeout();
+            this.recentStatus = "Offline";
         }
     }
 
     processTimeout = (players) => {
         if (players > 0){
             this.endTimeout();
+            this.recentStatus = `Online (${players} players)`;
         } else if (players == 0 && ! this.#serverTimeout) {
             this.#serverTimeout = setTimeout(this.stopServer,TIME);
+            this.recentStatus = "Online (Server timeout in 30min or less)";
         }
     }
 
