@@ -41,7 +41,7 @@ async function commandStatus(message,HRID){
 }
 
 async function commandStartInstance(message,HRID){
-    if(checkForPerms(message.author)){
+    if(checkForPerms(message.member)){
         startMessage = await serverManager.startInstanceFromHRID(HRID);
         message.channel.send(startMessage);
     } else {
