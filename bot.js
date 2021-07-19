@@ -50,7 +50,8 @@ async function commandStartInstance(message,HRID){
 }
 
 async function commandStopInstance(message,HRID){
-    if(checkForPerms(message.author)){
+    console.log(message.member.roles)
+    if(checkForPerms(message.member)){
         stopMessage = await serverManager.stopInstanceFromHRID(HRID);
         message.channel.send(stopMessage);
     } else {
@@ -61,7 +62,6 @@ async function commandStopInstance(message,HRID){
 function checkForPerms(author){
     let ret = false; 
     config.roles.forEach(roleID => {
-        console.log(roleID);
         if(author.roles.cache.has(roleID)){
             ret = true;
             return;
