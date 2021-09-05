@@ -46,8 +46,10 @@ class Server {
     getServerStatus = async function (cb = this.processStatus) {//if cb is given args (null,null) then the instance isnt up
         const instanceStatus = await this.getInstanceStatus();
         if (instanceStatus) {
+            this.recentStatus = "Instance Online"
             mcPing.ping_fe({ host: this.serverURI, port: this.serverPort }, cb);
         } else {
+            this.recentStatus = "Instance Offline"
             cb(null, null);
         }
     }
@@ -64,7 +66,7 @@ class Server {
             this.recentStatus = "Offline/Booting";
         } else {//Server and EC2 instance are offline
             this.endTimeout();
-            this.recentStatus = "Offline";
+            //this.recentStatus = "Offline";
         }
     }
 
