@@ -12,7 +12,7 @@ class ServerManager {
         const serversJson = require(serversPath);
         this.#servers = [];
         serversJson.servers.forEach(server => {
-            this.#servers.push(new Server(server.AWSID,server.URI,server.Port,server.HRID));
+            this.#servers.push(new Server(server.AWSID,server.URI,server.Port,server.HRID,server.timeout));
         });
         console.log(this.#servers);
         this.#serverStatusRefresh = setInterval(this.refreshStatuses,refreshInterval);
