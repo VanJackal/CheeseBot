@@ -41,8 +41,8 @@ client.on('message', message => {//process commands
  * @param {String} HRID 
  */
 async function commandStatus(message,HRID){
-    status = serverManager.getStatusFromHRID(HRID);
-    message.channel.send(status);
+    let status = await serverManager.getStatusFromHRID(message,HRID);
+    if (status) message.channel.send(status);
 }
 
 /**

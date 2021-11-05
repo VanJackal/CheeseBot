@@ -63,14 +63,19 @@ class Server {
      * get the current status and send it to a callback function
      * @param {*} cb 
      */
-    getServerStatus = async function (cb = this.processStatus) {//if cb is given args (null,null) then the instance isnt up
+    getServerStatus = async (message, cb = this.processStatus) => {//if cb is given args (null,null) then the instance isnt up
         const instanceStatus = await this.getInstanceStatus();
         if (instanceStatus) {
             this.recentStatus = "Instance Online"
-            mcPing.ping_fe({ host: this.serverURI, port: this.serverPort }, cb);
+            mcPing.ping_fe({ host: this.serverURI, port: this.serverPort }, (err,res) => {
+                cb(err,res);
+                message?.channel.send(this.recentStatus);
+            });
+            return "";
         } else {
             this.recentStatus = "Instance Offline"
             cb(null, null);
+            return this.recentStatus;
         }
     }
 
@@ -91,7 +96,7 @@ class Server {
             this.recentStatus = "Offline/Booting";
         } else {//Server and EC2 instance are offline
             this.endTimeout();
-            //this.recentStatus = "Offline";
+            this.recentStatus = "Offline";
         }
     }
 

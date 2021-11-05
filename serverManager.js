@@ -34,7 +34,7 @@ class ServerManager {
      */
     refreshStatuses = () => {//TODO Remove Status Buffer
         this.#servers.forEach(server => {
-            server.getServerStatus();
+            server.getServerStatus(null);
         });
     }
 
@@ -67,10 +67,11 @@ class ServerManager {
      * @param {String} HRID 
      * @returns String describing status of the server with HRID
      */
-    getStatusFromHRID = (HRID) => {
+    getStatusFromHRID = async (message,HRID) => {
         let server = this.getServerFromHRID(HRID);
-        this.refreshStatuses();//TODO Remove Status Buffer
-        return server?.recentStatus ?? `Server with id \`${HRID}\` cannot be found.`;
+        //this.refreshStatuses();//TODO Remove Status Buffer
+        let status = await server?.getServerStatus(message);
+        return status ?? `Server with id \`${HRID}\` cannot be found.`;
     }
 
     /**
