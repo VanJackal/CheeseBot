@@ -5,8 +5,16 @@ const mcPing = require('minecraft-ping');
 const TIME = 1800000;//1.8Mms = 1800s = 30min
 
 class Server {
-    #serverTimeout;
+    #serverTimeout;// Timeout storage//TODO move this to the serverside client 
 
+    /**
+     * initialize the server
+     * @param {*} instanceID AWS instance id for the server
+     * @param {*} serverURI URI of the game server
+     * @param {*} serverPort port of the game server
+     * @param {*} HRID Human Readable ID
+     * @param {Boolean} doTimeout should the server do a timeout
+     */
     constructor(instanceID, serverURI, serverPort, HRID, doTimeout) {
         this.instanceID = instanceID;
         this.serverURI = serverURI;
@@ -15,9 +23,13 @@ class Server {
         this.doTimeout = doTimeout;
         this.#serverTimeout = null;
 
-        this.recentStatus = "Initializing";
+        this.recentStatus = "Initializing";//TODO remove status buffer
     }
 
+    /**
+     * stop the server
+     * @returns command status message
+     */
     stopServer = async () => {
         let online = await this.getInstanceStatus();
         if (!online) {
@@ -31,6 +43,10 @@ class Server {
         return `${this.HRID} shutting down`;
     }
 
+    /**
+     * start the server
+     * @returns command status message
+     */
     startServer = async () => {
         let online = await this.getInstanceStatus();
         if (online) {
@@ -43,6 +59,10 @@ class Server {
         return `${this.HRID} Booting`;
     }
 
+    /**
+     * get the current status and send it to a callback function
+     * @param {*} cb 
+     */
     getServerStatus = async function (cb = this.processStatus) {//if cb is given args (null,null) then the instance isnt up
         const instanceStatus = await this.getInstanceStatus();
         if (instanceStatus) {
@@ -54,6 +74,11 @@ class Server {
         }
     }
 
+    /**
+     * process the status and store it in status buffer
+     * @param {*} err error
+     * @param {*} res response
+     */
     processStatus = (err, res) => {
         if (!err && res) {
             console.log(res);
@@ -70,6 +95,10 @@ class Server {
         }
     }
 
+    /**
+     * reset timeout based on player count
+     * @param {int} players 
+     */
     processTimeout = (players) => {
         if (players > 0) {
             this.endTimeout();
@@ -84,6 +113,9 @@ class Server {
         }
     }
 
+    /**
+     * remove current timeout
+     */
     endTimeout = () => {
         if (this.#serverTimeout) {
             clearTimeout(this.#serverTimeout);
@@ -91,6 +123,10 @@ class Server {
         }
     }
 
+    /**
+     * checks if the instance is online
+     * @returns true if the instance is online
+     */
     getInstanceStatus = async function () {
         const command = new DescribeInstanceStatusCommand({ InstanceIds: [this.instanceID] });
         const response = await client.send(command);
